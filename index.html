@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gastos del mes</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EDF1EE;--card:#fff;--ink:#0F2A22;--mute:#5B6F66;--line:#D5DED9;--pri:#0B5D4B;--c1:#34554A;--c2:#7FA093;--c3:#C8892B;--c4:#3F6FB5;--c5:#14A375;--c6:#B9C6C0;--c7:#8B5CB8;--c8:#C2557A;--neg:#B3402F;color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0C1713;--card:#14231D;--ink:#E6F0EB;--mute:#93A89F;--line:#25382F;--pri:#4FD1A5;--c1:#5C8576;--c2:#3A5A4E;--c3:#E0A23F;--c4:#6D9BE0;--c5:#2FD39B;--c6:#34463E;--c7:#B48CE0;--c8:#E07A9C;--neg:#F08A78;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0C1713;--card:#14231D;--ink:#E6F0EB;--mute:#93A89F;--line:#25382F;--pri:#4FD1A5;--c1:#5C8576;--c2:#3A5A4E;--c3:#E0A23F;--c4:#6D9BE0;--c5:#2FD39B;--c6:#34463E;--c7:#B48CE0;--c8:#E07A9C;--neg:#F08A78;color-scheme:dark}
+*,*::before,*::after{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 "Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;font-variant-numeric:tabular-nums}
+main{max-width:520px;margin:0 auto;padding:20px 16px 48px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-size:24px;margin:0;font-weight:700}
+.lab{font-size:15px;font-weight:600;color:var(--mute);margin:0 0 4px}
+.big{font-size:52px;font-weight:700;letter-spacing:-.02em;line-height:1.05;margin:0}
+.sub{color:var(--mute);font-size:14px;margin:6px 0 18px}
+.sh{display:flex;justify-content:space-between;align-items:baseline;margin:28px 0 10px}
+h2{font-size:19px;margin:0;font-weight:700}
+.h2in{font:inherit;font-size:19px;font-weight:700;border:0;background:transparent;color:inherit;padding:2px 0;flex:1;min-width:0}
+.sh b{font-size:19px}
+.bar{display:flex;height:16px;border-radius:8px;overflow:hidden;background:var(--line);margin-bottom:14px}
+.bar i{display:block;height:100%}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:2px 16px}
+.row{display:flex;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border-bottom:0}
+.row .l{flex:1;min-width:0}
+.row b{font-weight:700}
+.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.mute{color:var(--mute)}
+.neg{color:var(--neg)}
+.tot{font-weight:700;font-size:17px}
+small{display:block;color:var(--mute);font-size:12px}
+small i{font-style:normal}
+input{font:inherit;color:inherit}
+.nm{width:100%;border:0;background:transparent;padding:2px 0;min-width:0}
+.am,.fld{border:0;border-bottom:1px dashed var(--mute);background:transparent;text-align:right;padding:4px 0;width:92px}
+.fld{width:80px}
+input[type=checkbox]{width:22px;height:22px;accent-color:var(--pri);flex:none}
+.done .nm{text-decoration:line-through;color:var(--mute)}
+.x{background:none;border:0;color:var(--mute);font-size:24px;line-height:1;min-width:36px;min-height:36px;cursor:pointer}
+.add{display:flex;gap:8px;padding:12px 0;border-bottom:1px solid var(--line)}
+.add input{border:1px solid var(--line);border-radius:10px;padding:10px;background:transparent;min-width:0}
+.add input:first-child{flex:1}
+.add input+input{width:84px}
+.btn{background:var(--pri);color:var(--card);border:0;border-radius:10px;padding:10px 14px;font:inherit;font-weight:600;cursor:pointer}
+.btn.alt{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btns{display:flex;gap:8px;flex-wrap:wrap;padding:12px 0}
+#resumen{margin-top:36px;padding-top:8px;border-top:2px solid var(--line)}
+button:focus-visible,input:focus-visible{outline:2px solid var(--pri);outline-offset:2px}
+</style>
+</head>
+<body>
+<main id="v"></main>
+<script>
+const K='gastos-app-compartida-v1';
+const D={cfg:{ingFin:0,ingQuin:0,incQ:true,seq:false,tf:'Fin de mes',tq:'Quincena',tm:'Otros ingresos'},ah:[{n:'Ahorro',p:10}],fin:[],quin:[],fam:[]};
+let S=null;try{S=JSON.parse(localStorage.getItem(K))}catch(e){}
+if(!S||!S.fin)S=JSON.parse(JSON.stringify(D));
+{const o=S.cfg||{},old=!S.ah&&o.fyk!=null;S={cfg:Object.assign({},D.cfg,o,old?{seq:true}:{}),ah:S.ah||(old?[{n:o.nf||'Ahorro 1',p:o.fyk},{n:o.np||'Ahorro 2',p:o.per}]:D.ah),fin:S.fin,quin:S.quin,fam:S.fam}}
+const save=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+const $=s=>document.querySelector(s);
+const fmt=n=>new Intl.NumberFormat('es-EC',{style:'currency',currency:'USD'}).format(n);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const TT={fin:'tf',quin:'tq',fam:'tm'},COL=['--c3','--c4','--c7','--c8'];
+
+function V(){
+  const sm=k=>S[k].reduce((t,i)=>t+(+i.a||0),0),c=S.cfg;
+  const gf=sm('fin'),gq=sm('quin'),fam=sm('fam'),sf=c.ingFin-gf,sq=c.ingQuin-gq;
+  const tot=sf+fam+(c.incQ?sq:0),o={};let rem=tot;
+  S.ah.forEach((x,i)=>{const p=+x.p||0,a=(c.seq?rem:tot)*p/100;o['a'+i]=a;o['l'+i]=p+'% '+(c.seq?'de lo que queda':'del saldo total');rem-=a});
+  const cnt=k=>{const d=S[k].filter(i=>i.p).length,p=S[k].reduce((t,i)=>t+(i.p?0:+i.a||0),0);
+    return d+' de '+S[k].length+(k=='fam'?' recibidos':' pagados · Por pagar '+fmt(p))};
+  return Object.assign(o,{g_fin:gf,g_quin:gq,g_fam:fam,s_fin:sf,s_quin:sq,i_fin:c.ingFin,i_quin:c.ingQuin,fam,tot,libre:rem,
+    c_fin:cnt('fin'),c_quin:cnt('quin'),c_fam:cnt('fam')});
+}
+function upd(){
+  const v=V();
+  document.querySelectorAll('[data-o]').forEach(e=>{const x=v[e.dataset.o],p=e.dataset.p||'';
+    e.textContent=typeof x=='string'?x:p+fmt(x);e.classList.toggle('neg',typeof x=='number'&&x<0&&!p)});
+  const s=[...document.querySelectorAll('[data-s]')],t0=s.reduce((t,e)=>t+Math.max(0,v[e.dataset.s]),0)||1;
+  s.forEach(e=>e.style.width=Math.max(0,v[e.dataset.s])/t0*100+'%');
+}
+function sec(k){
+  const fam=k=='fam',fk=k=='fin'?'ingFin':'ingQuin';
+  const rows=S[k].map((i,x)=>{const d=`data-k="${k}" data-x="${x}"`;
+    return `<div class="row ${i.p?'done':''}"><input type="checkbox" ${d} data-a="p" ${i.p?'checked':''} aria-label="Marcar ${fam?'como recibido':'como pagado'}">
+    <div class="l"><input class="nm" ${d} data-a="n" value="${esc(i.n)}" aria-label="Nombre">${i.note?`<small>${esc(i.note)}</small>`:''}</div>
+    <input class="am" type="number" inputmode="decimal" step="0.01" ${d} data-a="a" value="${i.a}" aria-label="Monto">
+    <button class="x" ${d} data-a="d" aria-label="Eliminar">×</button></div>`}).join('');
+  return `<section><div class="sh"><input class="h2in" data-a="cfg" data-f="${TT[k]}" value="${esc(S.cfg[TT[k]])}" aria-label="Nombre de la sección"><b data-o="g_${k}"></b></div>
+  <div class="card">${rows||'<div class="row mute"><span class="l">Aún no hay registros. Agrega el primero abajo.</span></div>'}
+  <div class="add"><input id="nn_${k}" placeholder="Nombre" aria-label="Nombre nuevo"><input id="na_${k}" type="number" inputmode="decimal" step="0.01" placeholder="0.00" aria-label="Monto nuevo"><button class="btn" data-a="add" data-k="${k}">Agregar</button></div>
+  ${fam?'':`<div class="row"><span class="l">Ingreso del periodo</span><input class="am" type="number" inputmode="decimal" step="0.01" data-a="cfg" data-f="${fk}" value="${S.cfg[fk]}"></div>
+  <div class="row tot"><span class="l">Saldo a favor</span><span data-o="s_${k}"></span></div>`}
+  <div class="row"><span class="l mute" data-o="c_${k}"></span></div></div></section>`;
+}
+function render(){
+  const c=S.cfg;
+  const seg=[['Gastos '+c.tf,'g_fin','--c1'],['Gastos '+c.tq,'g_quin','--c2']].concat(S.ah.map((x,i)=>[x.n||'Ahorro','a'+i,COL[i%4]]),[['Libre','libre','--c5']]);
+  if(!c.incQ)seg.push(['Sobrante de '+c.tq,'s_quin','--c6']);
+  $('#v').innerHTML=`<header class="top"><h1>Gastos del mes</h1><button class="btn alt" data-a="go">Ir al resumen</button></header><p class="sub">Escribe ingresos y gastos de cada periodo. El resumen se calcula solo y tus datos quedan guardados en tu teléfono.</p>`
+  +sec('fin')+sec('quin')+sec('fam')+
+  `<section id="resumen"><div class="sh"><h2>Resumen</h2></div>
+  <p class="lab">Libre del mes</p><p class="big" data-o="libre"></p>
+  <p class="sub">Después de gastos y ahorros</p>
+  <div class="bar">${seg.map(s=>`<i data-s="${s[1]}" style="background:var(${s[2]})"></i>`).join('')}</div>
+  <div class="card">${seg.map(s=>`<div class="row"><span class="dot" style="background:var(${s[2]})"></span><span class="l">${esc(s[0])}</span><b data-o="${s[1]}"></b></div>`).join('')}</div>
+  <div class="sh"><h2>Cómo se calcula</h2></div>
+  <div class="card">
+    <div class="row"><span class="l">${esc(c.tf)}<small>Ingreso <i data-o="i_fin"></i> − gastos <i data-o="g_fin"></i></small></span><span data-o="s_fin"></span></div>
+    <div class="row"><span class="l">${esc(c.tq)}<small>Ingreso <i data-o="i_quin"></i> − gastos <i data-o="g_quin"></i>${c.incQ?'':' · No suma al total'}</small></span><span data-o="s_quin" class="${c.incQ?'':'mute'}"></span></div>
+    <div class="row"><span class="l">${esc(c.tm)}</span><span data-o="fam" data-p="+ "></span></div>
+    <div class="row tot"><span class="l">Saldo a favor total</span><span data-o="tot"></span></div>
+    ${S.ah.map((x,i)=>`<div class="row"><span class="l">${esc(x.n||'Ahorro')}<small data-o="l${i}"></small></span><span data-o="a${i}" data-p="− "></span></div>`).join('')}
+    <div class="row tot"><span class="l">Saldo total del mes</span><span data-o="libre"></span></div>
+  </div>
+  <div class="sh"><h2>Ajustes</h2></div>
+  <div class="card">
+    ${S.ah.map((x,i)=>`<div class="row"><input class="nm" data-a="ah" data-f="n" data-x="${i}" value="${esc(x.n)}" aria-label="Nombre del ahorro"><input class="fld" type="number" inputmode="decimal" step="0.5" data-a="ah" data-f="p" data-x="${i}" value="${x.p}" aria-label="Porcentaje"><span class="mute">%</span><button class="x" data-a="dah" data-x="${i}" aria-label="Quitar ahorro">×</button></div>`).join('')}
+    <div class="btns"><button class="btn alt" data-a="aad">Agregar ahorro</button></div>
+    <div class="row"><span class="l">Cada ahorro se calcula sobre lo que queda después del anterior</span><input type="checkbox" data-a="cfg" data-f="seq" ${c.seq?'checked':''}></div>
+    <div class="row"><span class="l">Incluir saldo de ${esc(c.tq)} en el total</span><input type="checkbox" data-a="cfg" data-f="incQ" ${c.incQ?'checked':''}></div>
+    <div class="btns"><button class="btn" data-a="new">Nuevo mes</button><button class="btn alt" data-a="reset">Restablecer datos</button></div>
+  </div></section>`;
+  upd();
+}
+document.addEventListener('change',e=>{
+  const t=e.target,a=t.dataset.a;if(!a)return;
+  const k=t.dataset.k,x=+t.dataset.x,f=t.dataset.f;
+  if(a=='p'){S[k][x].p=t.checked;t.closest('.row').classList.toggle('done',t.checked)}
+  else if(a=='n')S[k][x].n=t.value;
+  else if(a=='a')S[k][x].a=+t.value||0;
+  else if(a=='ah'){if(f=='n'){S.ah[x].n=t.value;save();return render()}S.ah[x].p=+t.value||0}
+  else if(a=='cfg'){if(t.type=='checkbox'||t.type=='text'){S.cfg[f]=t.type=='text'?t.value:t.checked;save();return render()}S.cfg[f]=+t.value||0}
+  save();upd();
+});
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  const a=b.dataset.a,k=b.dataset.k;
+  if(a=='go'){$('#resumen').scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});return}
+  if(a=='d')S[k].splice(+b.dataset.x,1);
+  else if(a=='dah')S.ah.splice(+b.dataset.x,1);
+  else if(a=='aad')S.ah.push({n:'Nuevo ahorro',p:10});
+  else if(a=='add'){const n=$('#nn_'+k).value.trim(),v=$('#na_'+k).value;if(!n||v==='')return;S[k].push({n,a:+v,p:false})}
+  else if(a=='new'){if(!confirm('¿Empezar un nuevo mes? Se desmarcan todos los pagos.'))return;['fin','quin','fam'].forEach(q=>S[q].forEach(i=>i.p=false))}
+  else if(a=='reset'){if(!confirm('¿Borrar todos los datos y empezar de cero?'))return;S=JSON.parse(JSON.stringify(D))}
+  else return;
+  save();render();
+});
+render();
+</script>
+</body>
+</html>
